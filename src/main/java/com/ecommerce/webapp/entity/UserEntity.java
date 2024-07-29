@@ -11,7 +11,7 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(name = "firstname")
     private String firstname;
@@ -28,28 +28,26 @@ public class UserEntity {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "addressID")
-    private int addressID;
-
-    @Column(name = "role")
-    private String role;
 
     @Column(name = "phone")
     private String phone;
 
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "userID", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "roleID", referencedColumnName = "id"))
     private List<Role> roles = new ArrayList<>();
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(name = "user_address", joinColumns = @JoinColumn(name = "userID", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "addressID", referencedColumnName = "id"))
+    private List<Address> addresses = new ArrayList<>();
 
-
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -93,21 +91,6 @@ public class UserEntity {
         this.email = email;
     }
 
-    public int getAddressID() {
-        return addressID;
-    }
-
-    public void setAddressID(int addressID) {
-        this.addressID = addressID;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
 
     public String getPhone() {
         return phone;
@@ -123,5 +106,17 @@ public class UserEntity {
 
     public void setRoles(List<Role> roles) {
         this.roles = roles;
+    }
+
+    public UserEntity(String firstname, String lastname, String username, String password, String email, String phone) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.phone = phone;
+    }
+
+    public UserEntity() {
     }
 }
