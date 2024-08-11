@@ -25,6 +25,9 @@ public class ShopOrder {
     @CurrentTimestamp
     private LocalDateTime orderDate;
 
+    @Column(name = "order_status")
+    private String orderStatus;
+
     @ManyToOne
     @JoinColumn(name =  "userid", updatable = false, insertable = false)
     private UserEntity user;
@@ -32,7 +35,10 @@ public class ShopOrder {
     @OneToMany(mappedBy = "orderID", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 
-    public ShopOrder(UserEntity user, LocalDateTime orderDate) {
+
+
+    public ShopOrder(UserEntity user, LocalDateTime orderDate, String orderStatus) {
+        this.orderStatus = orderStatus;
         this.user = user;
         this.orderDate = orderDate;
     }

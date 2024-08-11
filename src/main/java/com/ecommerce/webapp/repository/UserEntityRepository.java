@@ -17,4 +17,9 @@ public interface UserEntityRepository extends CrudRepository<UserEntity, Integer
 
     ArrayList<UserEntity> findAll();
 
+    UserEntity save(UserEntity userEntity);
+
+    void deleteById(int id);
+
+
 }

@@ -82,7 +82,8 @@ public class WebSecurityConfig{
 
                 {
                     try {
-                        authz.requestMatchers("/user/register", "/user/login", "/user/delete", "/user/getUser").permitAll()
+                        authz.requestMatchers("/user/register", "/user/login", "/user/delete",
+                                        "/user/getUser", "/product/**").permitAll()
                                 .anyRequest().authenticated()
                     .and()
                 .exceptionHandling( excep ->

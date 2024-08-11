@@ -1,25 +1,23 @@
 package com.ecommerce.webapp.repository;
 
-import com.ecommerce.webapp.entity.Address;
+import com.ecommerce.webapp.entity.Role;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 
 @Repository
-public interface AddressRepository extends CrudRepository<Address, Integer> {
+public interface RoleRepository extends CrudRepository<Role, Integer> {
 
+    ArrayList<Role> findAll();
 
+    Role findByName(String name);
 
-    ArrayList<Address> findAll();
+    Role findById(int id);
 
-    Address findById(int id);
-
-    Address save(Address address);
-
+    Role save(Role role);
 
     void deleteById(int id);
-
 
 
 }
