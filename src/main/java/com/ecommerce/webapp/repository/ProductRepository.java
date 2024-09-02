@@ -17,14 +17,17 @@ public interface ProductRepository extends CrudRepository<Product, Integer> {
 
     Product findByName(String name);
 
-    Product findByBrandid(String brandid);
-
     Product save(Product product);
 
     void deleteById(int id);
 
     Page<Product> findAll(Pageable pageable);
 
+    ArrayList<Product> findAllByType(String type);
+
+    ArrayList<Product> findAllByBrandid(String brandid);
+
+    Product findByNameAndBrandidAndColor(String name, String brand, String color);
 
 
 

@@ -4,8 +4,8 @@ package com.ecommerce.webapp.service;
 import com.ecommerce.webapp.dto.request.LoginDTO;
 import com.ecommerce.webapp.dto.response.Status;
 import com.ecommerce.webapp.dto.request.RegisterDTO;
-import com.ecommerce.webapp.entity.Role;
-import com.ecommerce.webapp.entity.UserEntity;
+import com.ecommerce.webapp.entity.*;
+import com.ecommerce.webapp.repository.ShopOrderRepository;
 import com.ecommerce.webapp.repository.UserEntityRepository;
 import com.ecommerce.webapp.util.StatusBuilder;
 import jakarta.transaction.Transactional;
@@ -28,6 +28,9 @@ public class UserService implements UserDetailsService {
     UserEntityRepository userEntityRepository;
 
     @Autowired
+    ShopOrderRepository shopOrderRepository;
+
+    @Autowired
     private BCryptPasswordEncoder bCryptEncoder;
 
     public UserEntity findById(Integer id) {
@@ -40,6 +43,11 @@ public class UserService implements UserDetailsService {
 
     public UserEntity findByEmail(String email) {
         return userEntityRepository.findByEmail(email);
+    }
+
+    public ArrayList<Role> getRoles(String username) {
+        UserEntity user = this.userEntityRepository.findByUsername(username);
+        return (ArrayList<Role>) user.getRoles();
     }
 
     public ArrayList<UserEntity> getAllUsers(){
@@ -165,6 +173,29 @@ public class UserService implements UserDetailsService {
     }
 
 
+    public Set<Address> getAddress(String username){
+
+        UserEntity user = this.userEntityRepository.findByUsername(username);
+
+        return user.getAddresses();
+    }
+
+    /*
+    Is there a different way to do this?
+    Can we just have a OrderService which returns Orders by userID
+     */
+    public ArrayList<ShopOrder> getAllOrders(String username){
+
+        UserEntity user = this.userEntityRepository.findByUsername(username);
+
+        return (ArrayList<ShopOrder>) user.getOrders();
+
+    }
+
+    public ShopOrder getOrderByID(int orderId){
+
+        return this.shopOrderRepository.findById(orderId);
+    }
 
 
 }

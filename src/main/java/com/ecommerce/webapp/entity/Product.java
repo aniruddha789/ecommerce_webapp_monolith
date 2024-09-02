@@ -15,6 +15,8 @@ public class Product {
     private Integer id;
     @Column(name = "name")
     private String name;
+    @Column(name = "type")
+    private String type;
     @Column(name = "brandid")
     private String brandid;
     @Column(name = "color")
@@ -31,9 +33,9 @@ public class Product {
     private List<Inventory> inventory;
 
 
-
-    public Product(String name, String brandid, String color, int listprice, String description, int supplierID, String image) {
+    public Product(String name, String type, String brandid, String color, int listprice, String description, int supplierID, String image) {
         this.name = name;
+        this.type = type;
         this.brandid = brandid;
         this.color = color;
         this.listprice = listprice;
@@ -43,6 +45,15 @@ public class Product {
     }
 
     public Product() {
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        //check if object is instance of Product class
+        if(! obj.getClass().isInstance(Product.class) ) return false;
+
+        return this.equals(obj);
     }
 
 }

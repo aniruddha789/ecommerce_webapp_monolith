@@ -1,0 +1,5 @@
+24/08/2024 Doubt: After placing an order, what the backend would do. How would it process that order and keep updating
+the status till its delivered?
+14/08/2024 To Do: Set a primary address for a user. Maybe add a field in user table.
+14/08/2024 Done: For a product in an order, how would that product's specific attr will be stored (e.g size)
+14/08/2024 Done: While adding a product, check if product with same attribute already exists.
