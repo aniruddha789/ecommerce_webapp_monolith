@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.ecommerce</groupId>
-	<artifactId>webapp</artifactId>
+	<artifactId>urban-kicks-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>webapp</name>
 	<description>Demo project for Spring Boot</description>
