@@ -1,6 +1,5 @@
 package com.ecommerce.webapp.config;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +23,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig{
+public class WebSecurityConfig {
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -38,76 +37,27 @@ public class WebSecurityConfig{
     @Autowired
     private SecurityFilter securityFilter;
 
-//    @Override
-//    @Bean
-//    protected AuthenticationManager authenticationManager() throws Exception {
-//        return authenticationManager();
-//    }
-
-//    @Bean
-//    public UserDetailsService getUserDetailsService(){
-//        return userDetailsService;
-//    }
-
-//    @Bean
-//    public PasswordEncoder getPasswordEncoder(){
-//        return bCryptEncoder;
-//    }
-
     @Bean
     public AuthenticationManager authenticationManager(List<AuthenticationProvider> authenticationProviders) {
         return new ProviderManager(authenticationProviders);
     }
 
-//    @Bean
-//    protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//
-//        http.csrf(_csrf ->
-//                _csrf.disable()).authorizeHttpRequests(
-//                authorizeRequests -> authorizeRequests
-//                        .anyRequest().permitAll()
-//        );
-//
-//        return http.build();
-//
-//    }
-
     @Bean
     protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
-                .csrf(_csrf ->
-               _csrf.disable())    //Disabling CSRF as not using form based login
-                .authorizeRequests(authz ->
-
-                {
-                    try {
-                        authz.requestMatchers("/user/register", "/user/login", "/user/delete",
-                                        "/user/getUser", "/product/**").permitAll()
-                                .anyRequest().authenticated()
-                    .and()
-                .exceptionHandling( excep ->
-                        excep.authenticationEntryPoint(authenticationEntryPoint)
-                )
-                .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                //To Verify user from second request onwards............
-                )
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .authenticationProvider(authenticationProvider());
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-
-
+                .csrf(_csrf -> _csrf.disable())
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/user/register", "/user/login").permitAll()
+                        .anyRequest().authenticated())
+                .exceptionHandling(excep -> excep.authenticationEntryPoint(authenticationEntryPoint))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-
     }
 
     @Bean
-    public AuthenticationProvider  authenticationProvider() {
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(userDetailsService);
         authenticationProvider.setPasswordEncoder(bCryptEncoder);

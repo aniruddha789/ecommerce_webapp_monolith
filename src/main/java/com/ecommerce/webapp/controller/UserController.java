@@ -10,11 +10,14 @@ import com.ecommerce.webapp.entity.Role;
 import com.ecommerce.webapp.entity.UserEntity;
 import com.ecommerce.webapp.service.UserService;
 import com.ecommerce.webapp.util.JWTUtil;
-import com.ecommerce.webapp.util.StatusBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -48,16 +51,20 @@ public class UserController {
     }
 
     @GetMapping("/login")
-    public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginDTO loginDTO){
+    public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginDTO loginDTO) {
+        try {
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
+            );
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus .UNAUTHORIZED)
+                .body(new LoginResponse(null, "FAIL", "Invalid username or password"));
+        }
 
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginDTO.getUsername(), loginDTO.getPassword()));
+        final UserDetails userDetails = userService.loadUserByUsername(loginDTO.getUsername());
+        final String token = jwtUtil.generateToken(userDetails.getUsername()).trim(); // Ensure no whitespace
 
-        String token = jwtUtil.generateToken(loginDTO.getUsername());
-
-        LoginResponse resp = new LoginResponse(token, "PASS", "Token generated successfully");
-
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(new LoginResponse(token, "SUCCESS", "Token generated successfully"));
     }
 
 
