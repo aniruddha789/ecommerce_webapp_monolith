@@ -47,8 +47,16 @@ public class WebSecurityConfig {
         http
                 .csrf(_csrf -> _csrf.disable())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/user/register", "/user/login").permitAll()
-                        .anyRequest().authenticated())
+                .requestMatchers("/user/register", "/user/login").permitAll()
+                .requestMatchers("/product/getProduct").permitAll()
+                .requestMatchers("/product/getProduct/**").permitAll()
+                .requestMatchers("/product/getInventory/**").permitAll()
+                .requestMatchers("/product/getProductByBrand/**").permitAll()
+                .requestMatchers("/product/getProductPaged").permitAll()
+                .requestMatchers("/product/getProductByTypePaged/**").permitAll()
+                .requestMatchers("/product/**").authenticated()
+                .anyRequest().authenticated()
+            )
                 .exceptionHandling(excep -> excep.authenticationEntryPoint(authenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
