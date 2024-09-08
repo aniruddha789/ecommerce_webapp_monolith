@@ -7,6 +7,10 @@ import com.ecommerce.webapp.entity.Product;
 import com.ecommerce.webapp.repository.ProductRepository;
 import com.ecommerce.webapp.util.StatusBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
 
@@ -20,20 +24,21 @@ public class ProductService {
     ProductRepository productRepository;
 
 
-    public Status addProduct(RequestEntity<Product> productRequestEntity){
+    public Status addProduct(Product newProduct){
 
-        Product newProduct = productRequestEntity.getBody();
         Product existingProduct = productRepository.findByNameAndBrandidAndColor(
                 newProduct.getName(),
                 newProduct.getBrandid(),
                 newProduct.getColor()
         );
 
+        String prodUniqueKey = newProduct.getName() + "-" + newProduct.getBrandid() + "-" + newProduct.getColor();
+
         if(existingProduct != null){
             return new StatusBuilder()
                     .status("FAIL")
                     .code("400")
-                    .message("Product already exists!")
+                    .message(String.format("Product %s already exists!", prodUniqueKey))
                     .build();
         }
 
@@ -46,6 +51,19 @@ public class ProductService {
                 .message("Product Created Successfully!")
                 .build();
     }
+
+    public ArrayList<Status> addMultipleProducts(ArrayList<Product> productList){
+
+        ArrayList<Status> statusList = new ArrayList<>();
+
+        for(Product prod : productList){
+            Status st = this.addProduct(prod);
+            statusList.add(st);
+        }
+        
+        return statusList;
+    }
+
 
     public Status deleteProduct(int id){
         String msg = "Product deleted successfully!";
@@ -84,6 +102,16 @@ public class ProductService {
 
     public ArrayList<Product> getProductByBrand(String brand){
         return this.productRepository.findAllByBrandid(brand);
+    }
+
+    public Page<Product> getAllProductsPaged(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        return productRepository.findAll(pageable);
+    }
+
+    public Page<Product> getProductByTypePaged(int page, int size, String type) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+        return productRepository.findAllByType(type, pageable);
     }
 
 }

@@ -61,4 +61,14 @@ public class Status {
         this.code = code;
         this.path = path;
     }
+
+    @Override
+    public String toString() {
+        return String.format("Status: %s\n"
+                + "Message: %s\n"
+                + "Timestamp: %s\n"
+                + "Code: %s\n"
+                + "Path: %s\n",
+                this.status,this.message,this.timestamp,this.code,this.path);
+    }
 }

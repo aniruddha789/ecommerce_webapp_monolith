@@ -29,6 +29,7 @@ public interface ProductRepository extends CrudRepository<Product, Integer> {
 
     Product findByNameAndBrandidAndColor(String name, String brand, String color);
 
+    Page<Product> findAllByType(String type, Pageable pageable);
 
 
 }
