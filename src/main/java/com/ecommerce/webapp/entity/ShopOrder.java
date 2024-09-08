@@ -25,8 +25,10 @@ public class ShopOrder {
     @CurrentTimestamp
     private LocalDateTime orderDate;
 
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "order_status")
-    private String orderStatus;
+    private OrderStatus orderStatus;
 
     @ManyToOne
     @JoinColumn(name =  "userid", updatable = false, insertable = false)
@@ -37,10 +39,10 @@ public class ShopOrder {
 
 
 
-    public ShopOrder(UserEntity user, LocalDateTime orderDate, String orderStatus) {
-        this.orderStatus = orderStatus;
+    public ShopOrder(UserEntity user, LocalDateTime orderDate) {
         this.user = user;
         this.orderDate = orderDate;
+        this.orderStatus = OrderStatus.CART;
     }
 
     public ShopOrder() {

@@ -50,7 +50,7 @@ public class UserController {
         return status;
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginDTO loginDTO) {
         try {
             authenticationManager.authenticate(
@@ -58,13 +58,15 @@ public class UserController {
             );
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus .UNAUTHORIZED)
-                .body(new LoginResponse(null, "FAIL", "Invalid username or password"));
+                .body(new LoginResponse(null, "FAIL", "Invalid username or password", null, null));
         }
 
         final UserDetails userDetails = userService.loadUserByUsername(loginDTO.getUsername());
         final String token = jwtUtil.generateToken(userDetails.getUsername()).trim(); // Ensure no whitespace
-
-        return ResponseEntity.ok(new LoginResponse(token, "SUCCESS", "Token generated successfully"));
+        String username = userDetails.getUsername();
+        String firstname = userService.findByUsername(username).getFirstname();
+        return ResponseEntity.ok(new LoginResponse(token, "SUCCESS", "Token generated successfully", 
+        username, firstname));
     }
 
 
@@ -85,6 +87,9 @@ public class UserController {
         return userService.getRoles(uname);
     }
 
-
+    @GetMapping("/isValidToken")
+    public boolean isValidToken(@RequestParam String token){
+        return jwtUtil.isValidToken(token);
+    }
 
 }
