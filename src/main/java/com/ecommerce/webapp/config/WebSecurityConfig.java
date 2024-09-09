@@ -54,6 +54,8 @@ public class WebSecurityConfig {
                  .requestMatchers("/product/getProductByBrand/**").permitAll()
                  .requestMatchers("/product/getProductPaged").permitAll()
                  .requestMatchers("/product/getProductByTypePaged/**").permitAll()
+                 // Add these lines for Swagger UI
+                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/product/**").authenticated()
                 .anyRequest().authenticated()
             )
