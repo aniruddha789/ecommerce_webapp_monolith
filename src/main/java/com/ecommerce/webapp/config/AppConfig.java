@@ -24,7 +24,9 @@ public class AppConfig {
                         .allowedOrigins("192.168.1.29",
                                 "http://localhost:5173",
                                 "https://myurbankicks.in",
-                                "27.6.157.84")
+                                "27.6.157.84",
+                                "52.74.166.77",
+                                "18.139.194.139")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
