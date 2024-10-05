@@ -24,6 +24,9 @@ public class OrderItem {
     @Column(name = "size")
     public String size;
 
+    @Column(name = "color")
+    public String color;
+
     @ManyToOne
     @JoinColumn(name = "orderID", nullable = false, updatable = false, insertable = false)
     private ShopOrder order;
@@ -32,11 +35,12 @@ public class OrderItem {
     @JoinColumn(name = "productID", nullable = false, updatable = false, insertable = false)
     private Product product;
 
-    public OrderItem(int orderID, int productID, int quantity, String size) {
+    public OrderItem(int orderID, int productID, int quantity, String size, String color) {
         this.orderID = orderID;
         this.productID = productID;
         this.quantity = quantity;
         this.size = size;
+        this.color = color;
     }
 
     public OrderItem() {
