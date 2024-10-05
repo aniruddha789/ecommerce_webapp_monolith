@@ -26,13 +26,12 @@ public class ProductService {
 
     public Status addProduct(Product newProduct){
 
-        Product existingProduct = productRepository.findByNameAndBrandidAndColor(
+        Product existingProduct = productRepository.findByNameAndBrandid(
                 newProduct.getName(),
-                newProduct.getBrandid(),
-                newProduct.getColor()
+                newProduct.getBrandid()
         );
 
-        String prodUniqueKey = newProduct.getName() + "-" + newProduct.getBrandid() + "-" + newProduct.getColor();
+        String prodUniqueKey = newProduct.getName() + "-" + newProduct.getBrandid() ;
 
         if(existingProduct != null){
             return new StatusBuilder()

@@ -25,14 +25,22 @@ public class Inventory {
     @Column(name = "size", nullable = false)
     private String size;
 
+    @Column(name = "color", nullable = false)
+    private String color;
+
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
+    @Column(name = "image", nullable = false)
+    private String image;
 
-    public Inventory(Product product, String size, int quantity) {
+
+    public Inventory(Product product, String size, String color, int quantity, String image) {
         this.product = product;
         this.size = size;
+        this.color = color;
         this.quantity = quantity;
+        this.image = image;
     }
 
 }

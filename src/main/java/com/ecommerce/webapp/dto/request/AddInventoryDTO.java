@@ -1,41 +1,27 @@
 package com.ecommerce.webapp.dto.request;
 
+import lombok.Data;
+
+@Data
 public class AddInventoryDTO {
 
     int productID;
     String size;
-    int quantity;
 
-    public AddInventoryDTO(int productID, String size, int quantity) {
+    String color;
+    int quantity;
+    String image;
+
+
+    public AddInventoryDTO(int productID, String size, String color, int quantity, String image) {
         this.productID = productID;
         this.size = size;
+        this.color = color;
         this.quantity = quantity;
+        this.image = image;
     }
 
     public AddInventoryDTO() {
     }
 
-    public int getProductID() {
-        return productID;
-    }
-
-    public void setProductID(int productID) {
-        this.productID = productID;
-    }
-
-    public String getSize() {
-        return size;
-    }
-
-    public void setSize(String size) {
-        this.size = size;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
 }

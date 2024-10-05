@@ -9,6 +9,8 @@ import com.ecommerce.webapp.util.StatusBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class InventoryService {
 
@@ -21,10 +23,22 @@ public class InventoryService {
     public Status addInventory(AddInventoryDTO inventoryRequest) {
         try{
             Inventory inventory = new Inventory();
-            inventory.setProduct(productRepository.findById(inventoryRequest.getProductID()));
-            inventory.setSize(inventoryRequest.getSize());
-            inventory.setQuantity(inventoryRequest.getQuantity());
-            inventoryRepository.save(inventory);
+            Optional<Inventory> existingInventory = inventoryRepository.findByProductIdAndSizeAndColor(
+                    inventoryRequest.getProductID(), inventoryRequest.getSize(), inventoryRequest.getColor());
+
+            if (existingInventory.isPresent()) {
+                Inventory existingInventoryValue = existingInventory.get();
+                existingInventoryValue.setQuantity(existingInventoryValue.getQuantity() + inventoryRequest.getQuantity());
+                updateInventory(existingInventoryValue);
+            } else {
+                inventory.setProduct(productRepository.findById(inventoryRequest.getProductID()));
+                inventory.setSize(inventoryRequest.getSize());
+                inventory.setQuantity(inventoryRequest.getQuantity());
+                inventory.setColor(inventoryRequest.getColor());
+                inventory.setImage(inventoryRequest.getImage());
+                inventoryRepository.save(inventory);
+            }
+
         } catch (Exception e) {
             return new StatusBuilder()
                     .status("FAIL")
@@ -36,7 +50,7 @@ public class InventoryService {
         return new StatusBuilder()
                 .status("PASS")
                 .code("200")
-                .message("Inventory Created Successfully!")
+                .message("Inventory Created / Updated Successfully!")
                 .build();
     }
 

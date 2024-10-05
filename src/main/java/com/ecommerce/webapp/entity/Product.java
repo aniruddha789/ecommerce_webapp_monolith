@@ -20,8 +20,6 @@ public class Product {
     private String type;
     @Column(name = "brandid")
     private String brandid;
-    @Column(name = "color")
-    private String color;
     @Column(name = "listprice")
     private int listprice;
     @Column(name = "description")
@@ -35,11 +33,10 @@ public class Product {
     private List<Inventory> inventory;
 
 
-    public Product(String name, String type, String brandid, String color, int listprice, String description, int supplierID, String image) {
+    public Product(String name, String type, String brandid, int listprice, String description, int supplierID, String image) {
         this.name = name;
         this.type = type;
         this.brandid = brandid;
-        this.color = color;
         this.listprice = listprice;
         this.description = description;
         this.supplierID = supplierID;
