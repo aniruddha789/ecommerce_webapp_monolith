@@ -1,6 +1,7 @@
 package com.ecommerce.webapp.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,7 @@ public class Inventory {
     private Integer id;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "productID", nullable = false)
     private Product product;
 

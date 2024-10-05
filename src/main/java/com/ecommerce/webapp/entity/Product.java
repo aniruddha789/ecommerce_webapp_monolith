@@ -1,5 +1,6 @@
 package com.ecommerce.webapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -29,6 +30,7 @@ public class Product {
     private int supplierID;
     @Column(name = "image")
     private String image;
+    @JsonManagedReference
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Inventory> inventory;
 
