@@ -197,5 +197,26 @@ public class UserService implements UserDetailsService {
         return this.shopOrderRepository.findById(orderId);
     }
 
+    public Status addAddressToUser(String username, Address address) {
+        UserEntity user = userEntityRepository.findByUsername(username);
+
+        if (user == null) {
+            return new StatusBuilder()
+                    .status("FAIL")
+                    .code("404")
+                    .message("User not found")
+                    .build();
+        }
+
+        user.addAddress(address);
+        userEntityRepository.save(user);
+
+        return new StatusBuilder()
+                .status("SUCCESS")
+                .code("200")
+                .message("Address added successfully")
+                .build();
+    }
+
 
 }
