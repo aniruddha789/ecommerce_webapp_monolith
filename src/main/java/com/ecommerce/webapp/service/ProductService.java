@@ -113,4 +113,8 @@ public class ProductService {
         return productRepository.findAllByType(type, pageable);
     }
 
+    public ArrayList<Product> getSearchResults(String query){
+        return productRepository.getSearchResults(query);
+    }
+
 }
