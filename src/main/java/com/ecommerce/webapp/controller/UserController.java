@@ -77,8 +77,14 @@ public class UserController {
 
     }
 
-    @GetMapping("/getAddress")
-    public Set<Address> getAddress(String username){
+    @PostMapping("/addAddress/{username}")
+    public Status addAddressToUser(@PathVariable String username, @RequestBody Address address) {
+        Status status = userService.addAddressToUser(username, address);
+        return status;
+    }
+
+    @GetMapping("/getAddress/{username}")
+    public Set<Address> getAddress(@PathVariable String username){
         return userService.getAddress(username);
     }
 

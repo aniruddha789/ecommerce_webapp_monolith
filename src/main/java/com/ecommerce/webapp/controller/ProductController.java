@@ -82,4 +82,10 @@ public class ProductController {
         return ResponseEntity.ok().body(paginatedProducts);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> getSearchResults(@RequestParam String query) {
+        List<Product> searchResults = productService.getSearchResults(query);
+        return ResponseEntity.ok().body(searchResults);
+    }
+
 }

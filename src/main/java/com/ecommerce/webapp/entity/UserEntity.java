@@ -60,6 +60,10 @@ public class UserEntity {
         this.phone = phone;
     }
 
+    public void addAddress(Address address) {
+        addresses.add(address);
+    }
+
     public UserEntity() {
     }
 }
