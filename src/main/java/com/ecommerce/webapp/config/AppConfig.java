@@ -23,6 +23,7 @@ public class AppConfig {
                 registry.addMapping("/**")
                         .allowedOrigins("192.168.1.29",
                                 "http://localhost:5173",
+                                "http://localhost:3000",
                                 "https://myurbankicks.in",
                                 "27.6.157.84",
                                 "52.74.166.77",
