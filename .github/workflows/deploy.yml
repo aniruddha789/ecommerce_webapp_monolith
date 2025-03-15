@@ -1,0 +1,33 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build and package application
+        run: |
+          # Add your build commands here
+          # For example:
+          # mvn clean package -DskipTests
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Copy the JAR file to the server (if needed)
+            # scp ${{ github.workspace }}/target/*.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/apps/urban_kicks/ecommerce_webapp_monolith/target/
+            
+            # Execute the restart script
+            cd /apps/urban_kicks
+            chmod +x restart.sh
+            ./restart.sh
