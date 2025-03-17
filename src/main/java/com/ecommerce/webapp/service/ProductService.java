@@ -41,8 +41,15 @@ public class ProductService {
                     .build();
         }
 
-
-        productRepository.save(newProduct);
+        try {
+            productRepository.save(newProduct);
+        } catch (Exception e){
+            return new StatusBuilder()
+                    .status("FAIL")
+                    .code("400")
+                    .message(String.format("Product %s could not be created! Error: {}", prodUniqueKey, e.getMessage()))
+                    .build();
+        }
 
         return new StatusBuilder()
                 .status("PASS")

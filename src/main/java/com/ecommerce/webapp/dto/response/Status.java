@@ -1,5 +1,8 @@
 package com.ecommerce.webapp.dto.response;
 
+import lombok.Builder;
+
+@Builder
 public class Status {
 
     private String status;
