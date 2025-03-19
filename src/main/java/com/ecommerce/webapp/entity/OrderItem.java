@@ -1,11 +1,19 @@
 package com.ecommerce.webapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "order_item")
+@JsonIgnoreProperties("order")
 public class OrderItem {
 
     @Id
@@ -43,6 +51,4 @@ public class OrderItem {
         this.color = color;
     }
 
-    public OrderItem() {
-    }
 }

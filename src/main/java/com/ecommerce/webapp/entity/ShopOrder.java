@@ -2,15 +2,20 @@ package com.ecommerce.webapp.entity;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.hibernate.annotations.CurrentTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
 @Entity
 @Data
+@Builder
+@AllArgsConstructor
 @Table(name = "shop_order")
 public class ShopOrder {
 
@@ -43,6 +48,7 @@ public class ShopOrder {
         this.user = user;
         this.orderDate = orderDate;
         this.orderStatus = OrderStatus.CART;
+        this.orderItems = new ArrayList<>();
     }
 
     public ShopOrder() {

@@ -1,9 +1,10 @@
 package com.ecommerce.webapp.service;
 
-import com.ecommerce.webapp.entity.ShopOrder;
-import com.ecommerce.webapp.entity.OrderItem;
-import com.ecommerce.webapp.entity.OrderStatus;
-import com.ecommerce.webapp.entity.UserEntity;
+import com.ecommerce.webapp.dto.request.order.SubmitOrderItem;
+import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
+import com.ecommerce.webapp.entity.*;
+import com.ecommerce.webapp.repository.OrderItemRepository;
+import com.ecommerce.webapp.repository.ProductRepository;
 import com.ecommerce.webapp.repository.ShopOrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,15 @@ public class OrderService {
 
     @Autowired
     ShopOrderRepository shopOrderRepository;
+
+    @Autowired
+    OrderItemRepository orderItemRepository;
+
+    @Autowired
+    ProductRepository productRepository;
+
+    @Autowired
+    UserService userService;
 
     public ShopOrder getOrCreateCart(UserEntity user) {
         Optional<ShopOrder> existingCart = shopOrderRepository.findByUserAndOrderStatus(user, OrderStatus.CART);
@@ -51,11 +61,57 @@ public class OrderService {
         shopOrderRepository.save(cart);
     }
 
-    public ShopOrder checkout(UserEntity user) {
-        ShopOrder cart = getOrCreateCart(user);
-        cart.setOrderStatus(OrderStatus.PLACED);
-        cart.setOrderDate(LocalDateTime.now());
-        return shopOrderRepository.save(cart);
+    public ShopOrder checkout(SubmitOrderRequest request) {
+        if(sanitizeOrderRequest(request)) {
+            ShopOrder cart;
+            try {
+                UserEntity user = userService.findByUsername(request.getUsername());
+                cart = getOrCreateCart(user);
+                cart = shopOrderRepository.save(cart);
+                cart = updateCart(cart, request);
+                if(cart != null) {
+                    cart.setOrderStatus(OrderStatus.PLACED);
+                    cart.setOrderDate(LocalDateTime.now());
+                    cart.setUser(user);
+                    return shopOrderRepository.save(cart);
+                }
+            } catch (Exception e){
+                throw new InvalidOrderStateException(e.getMessage());
+            }
+
+            return ShopOrder.builder().orderStatus(OrderStatus.CANCELLED).build();
+
+        } else {
+            throw new InvalidOrderStateException("Invalid order request");
+        }
+    }
+
+    protected ShopOrder updateCart(ShopOrder cart, SubmitOrderRequest request) {
+
+        if(cart != null && request != null && !request.getItems().isEmpty()){
+
+            for(SubmitOrderItem item : request.getItems()){
+
+                Product product = this.productRepository.findById(item.getId());
+                if(product != null ) {
+                    OrderItem orderItem = OrderItem.builder()
+                            .orderID(cart.getId())
+                            .productID(item.getId())
+                            .color(item.getColor())
+                            .quantity(item.getQuantity())
+                            .size(item.getSize())
+                            .build();
+
+                    OrderItem savedOrderItem = this.orderItemRepository.save(orderItem);
+
+                    cart.getOrderItems().add(savedOrderItem);
+                }
+            }
+
+            return cart;
+        }
+
+        return null;
     }
 
     public ShopOrder getOrderById(int orderId) {
@@ -74,5 +130,15 @@ public class OrderService {
             return shopOrderRepository.save(order);
         }
         throw new InvalidOrderStateException("Cannot cancel order with status: " + order.getOrderStatus());
+    }
+
+    protected boolean sanitizeOrderRequest(SubmitOrderRequest request){
+
+        if(request.getUsername() == null || request.getUsername().isEmpty() || request.getItems().isEmpty()){
+            throw new InvalidOrderStateException("Invalid order request username or items should not be empty");
+        }
+
+        return true;
+
     }
 }

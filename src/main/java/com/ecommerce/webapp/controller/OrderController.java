@@ -1,5 +1,6 @@
 package com.ecommerce.webapp.controller;
 
+import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
 import com.ecommerce.webapp.entity.OrderItem;
 import com.ecommerce.webapp.entity.ShopOrder;
 import com.ecommerce.webapp.entity.UserEntity;
@@ -50,11 +51,10 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrCreateCart(user));
     }
 
-    @PostMapping("/checkout")
-    public ResponseEntity<ShopOrder> checkout(@RequestParam String username) {
-        UserEntity user = userService.findByUsername(username);
-        ShopOrder placedOrder = orderService.checkout(user);
-        return ResponseEntity.ok(placedOrder);
+    @PostMapping("/submitOrder")
+    public ResponseEntity<ShopOrder> submitOrder(@RequestBody SubmitOrderRequest request) {
+        ShopOrder orderStatus = orderService.checkout(request);
+        return ResponseEntity.ok(orderStatus);
     }
 
     @GetMapping("/{orderId}")
