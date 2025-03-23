@@ -1,19 +1,24 @@
 package com.ecommerce.webapp.service;
 
-import com.ecommerce.webapp.dto.request.order.SubmitOrderItem;
-import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
-import com.ecommerce.webapp.entity.*;
-import com.ecommerce.webapp.repository.OrderItemRepository;
-import com.ecommerce.webapp.repository.ProductRepository;
-import com.ecommerce.webapp.repository.ShopOrderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.ecommerce.webapp.dto.request.order.SubmitOrderItem;
+import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
+import com.ecommerce.webapp.entity.OrderItem;
+import com.ecommerce.webapp.entity.OrderStatus;
+import com.ecommerce.webapp.entity.Product;
+import com.ecommerce.webapp.entity.ShopOrder;
+import com.ecommerce.webapp.entity.UserEntity;
 import com.ecommerce.webapp.exception.InvalidOrderStateException;
 import com.ecommerce.webapp.exception.OrderNotFoundException;
+import com.ecommerce.webapp.repository.OrderItemRepository;
+import com.ecommerce.webapp.repository.ProductRepository;
+import com.ecommerce.webapp.repository.ShopOrderRepository;
 
 @Service
 public class OrderService {
@@ -72,7 +77,7 @@ public class OrderService {
                 if(cart != null) {
                     cart.setOrderStatus(OrderStatus.PLACED);
                     cart.setOrderDate(LocalDateTime.now());
-                    cart.setUser(user);
+                    cart.setUserAndAddOrder(user);
                     return shopOrderRepository.save(cart);
                 }
             } catch (Exception e){
@@ -93,7 +98,7 @@ public class OrderService {
             for(SubmitOrderItem item : request.getItems()){
 
                 Product product = this.productRepository.findById(item.getId());
-                if(product != null ) {
+                if ( product != null ) {
                     OrderItem orderItem = OrderItem.builder()
                             .orderID(cart.getId())
                             .productID(item.getId())

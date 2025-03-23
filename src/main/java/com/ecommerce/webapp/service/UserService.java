@@ -197,6 +197,11 @@ public class UserService implements UserDetailsService {
         return this.shopOrderRepository.findById(orderId);
     }
 
+    public ShopOrder saveOrder(ShopOrder order){
+
+        return shopOrderRepository.save(order);
+    }
+
     public Status addAddressToUser(String username, Address address) {
         UserEntity user = userEntityRepository.findByUsername(username);
 
