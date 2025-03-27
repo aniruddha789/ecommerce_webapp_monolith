@@ -1,6 +1,7 @@
 package com.ecommerce.webapp.controller;
 
 import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
+import com.ecommerce.webapp.dto.response.order.OrderResponse;
 import com.ecommerce.webapp.entity.OrderItem;
 import com.ecommerce.webapp.entity.ShopOrder;
 import com.ecommerce.webapp.entity.UserEntity;
@@ -63,11 +64,11 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
-    @GetMapping("/user/{username}")
-    public ResponseEntity<List<ShopOrder>> getUserOrders(@PathVariable String username) {
+    @GetMapping("/getOrders/{username}")
+    public ResponseEntity<OrderResponse> getUserOrders(@PathVariable String username) {
         UserEntity user = userService.findByUsername(username);
-        List<ShopOrder> orders = orderService.getUserOrders(user);
-        return ResponseEntity.ok(orders);
+        OrderResponse order = orderService.getUserOrders(user);
+        return ResponseEntity.ok(order);
     }
 
     @PostMapping("/{orderId}/cancel")

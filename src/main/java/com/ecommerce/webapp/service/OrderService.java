@@ -1,9 +1,13 @@
 package com.ecommerce.webapp.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.ecommerce.webapp.dto.response.order.OrderResponse;
+import com.ecommerce.webapp.dto.response.order.OrderResponseOrder;
+import com.ecommerce.webapp.dto.response.order.OrdersResponseOrderItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -124,8 +128,49 @@ public class OrderService {
             .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
     }
 
-    public List<ShopOrder> getUserOrders(UserEntity user) {
-        return shopOrderRepository.findByUserAndOrderStatusNot(user, OrderStatus.CART);
+    public OrderResponse getUserOrders(UserEntity user) {
+        List<ShopOrder> orders = shopOrderRepository.findByUserAndOrderStatusNot(user, OrderStatus.CART);
+
+        OrderResponse orderResponse = generateOrdersResponse(orders);
+        orderResponse.setUserId(user.getId());
+        return orderResponse;
+    }
+
+    protected OrderResponse generateOrdersResponse(List<ShopOrder> orders) {
+
+        List<OrderResponseOrder> responses = new ArrayList<>();
+        if(orders != null && !orders.isEmpty()){
+
+            for(ShopOrder shopOrder: orders){
+                List<OrdersResponseOrderItem> orderItems = new ArrayList<>();
+                if(shopOrder.getOrderItems() !=  null && !shopOrder.getOrderItems().isEmpty()){
+
+                    for(OrderItem orderItem: shopOrder.getOrderItems()){
+                        orderItems.add(OrdersResponseOrderItem.builder()
+                                .id(orderItem.getId())
+                                .name(orderItem.getProduct().getName())
+                                .productId(orderItem.getProductID())
+                                .color(orderItem.getColor())
+                                .quantity(orderItem.getQuantity())
+                                .size(orderItem.getSize())
+                                .build());
+                    }
+                }
+
+                OrderResponseOrder response = OrderResponseOrder.builder()
+                    .id(shopOrder.getId())
+                    .orderDate(shopOrder.getOrderDate())
+                    .orderStatus(shopOrder.getOrderStatus())
+                    .orderItems(orderItems)
+                    .build();
+                responses.add(response);
+            }
+
+        }
+
+        return OrderResponse.builder()
+                .orders(responses)
+                .build();
     }
 
     public ShopOrder cancelOrder(int orderId) {
