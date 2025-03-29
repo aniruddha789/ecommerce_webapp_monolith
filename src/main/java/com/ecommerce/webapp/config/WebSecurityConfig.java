@@ -47,7 +47,7 @@ public class WebSecurityConfig {
         http
                 .csrf(_csrf -> _csrf.disable())
                 .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/user/register", "/user/login", "/user/isValidToken").permitAll()
+                .requestMatchers("/user/register", "/user/login", "/user/isValidToken", "/auth/public-key").permitAll()
                  .requestMatchers("/product/getProduct").permitAll()
                 .requestMatchers("/product/getProduct/**").permitAll()
                  .requestMatchers("/product/getInventory/**").permitAll()
