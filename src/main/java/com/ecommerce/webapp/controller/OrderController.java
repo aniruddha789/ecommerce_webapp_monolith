@@ -1,5 +1,6 @@
 package com.ecommerce.webapp.controller;
 
+import com.ecommerce.webapp.dto.request.order.SubmitOrderItem;
 import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
 import com.ecommerce.webapp.dto.response.order.CartIconResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponse;
@@ -39,10 +40,9 @@ public class OrderController {
     }
 
     @PostMapping("/cart/add")
-    public ResponseEntity<ShopOrder> addItemToCart(@RequestParam String username, @RequestBody OrderItem item) {
-        UserEntity user = userService.findByUsername(username);
-        orderService.addItemToCart(user, item);
-        return ResponseEntity.ok(orderService.getOrCreateCart(user));
+    public ResponseEntity<ShopOrder> addItemToCart(@RequestBody SubmitOrderRequest request) {
+        ShopOrder order = orderService.addItemToCart(request);
+        return ResponseEntity.ok(order);
     }
 
     @PostMapping("/cart/remove")
@@ -61,7 +61,7 @@ public class OrderController {
 
     @PostMapping("/submitOrder")
     public ResponseEntity<ShopOrder> submitOrder(@RequestBody SubmitOrderRequest request) {
-        ShopOrder orderStatus = orderService.checkout(request);
+        ShopOrder orderStatus = orderService.submitOrder(request);
         return ResponseEntity.ok(orderStatus);
     }
 

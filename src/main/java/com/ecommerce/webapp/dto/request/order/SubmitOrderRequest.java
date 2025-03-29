@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 public class SubmitOrderRequest {
 
-    private String username;;
+    private String username;
     private List<SubmitOrderItem> items;
 
 }

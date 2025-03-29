@@ -9,16 +9,14 @@ import com.ecommerce.webapp.dto.response.order.CartIconResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponseOrder;
 import com.ecommerce.webapp.dto.response.order.OrdersResponseOrderItem;
+import com.ecommerce.webapp.entity.*;
+import com.ecommerce.webapp.repository.InventoryRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ecommerce.webapp.dto.request.order.SubmitOrderItem;
 import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
-import com.ecommerce.webapp.entity.OrderItem;
-import com.ecommerce.webapp.entity.OrderStatus;
-import com.ecommerce.webapp.entity.Product;
-import com.ecommerce.webapp.entity.ShopOrder;
-import com.ecommerce.webapp.entity.UserEntity;
 import com.ecommerce.webapp.exception.InvalidOrderStateException;
 import com.ecommerce.webapp.exception.OrderNotFoundException;
 import com.ecommerce.webapp.repository.OrderItemRepository;
@@ -36,6 +34,9 @@ public class OrderService {
 
     @Autowired
     ProductRepository productRepository;
+
+    @Autowired
+    InventoryRepository inventoryRepository;
 
     @Autowired
     UserService userService;
@@ -61,10 +62,31 @@ public class OrderService {
                 .build();
     }
 
-    public void addItemToCart(UserEntity user, OrderItem item) {
-        ShopOrder cart = getOrCreateCart(user);
-        cart.getOrderItems().add(item);
-        shopOrderRepository.save(cart);
+    /** Basically adds all items to cart */
+    public ShopOrder addItemToCart(SubmitOrderRequest request) {
+        if(sanitizeOrderRequest(request)) {
+            ShopOrder cart;
+            try {
+                UserEntity user = userService.findByUsername(request.getUsername());
+                cart = getOrCreateCart(user);
+                cart = shopOrderRepository.save(cart);
+                cart = updateCart(cart, request);
+                if(cart != null) {
+                    /** Only this line is different from submitOrder function */
+                    cart.setOrderStatus(OrderStatus.CART);
+                    cart.setOrderDate(LocalDateTime.now());
+                    cart.setUserAndAddOrder(user);
+                    return shopOrderRepository.save(cart);
+                }
+            } catch (Exception e){
+                throw new InvalidOrderStateException(e.getMessage());
+            }
+
+            return ShopOrder.builder().orderStatus(OrderStatus.CANCELLED).build();
+
+        } else {
+            throw new InvalidOrderStateException("Invalid order request");
+        }
     }
 
     public void removeItemFromCart(UserEntity user, int itemId) {
@@ -82,15 +104,14 @@ public class OrderService {
         shopOrderRepository.save(cart);
     }
 
-    public ShopOrder checkout(SubmitOrderRequest request) {
+    public ShopOrder submitOrder(SubmitOrderRequest request) {
         if(sanitizeOrderRequest(request)) {
             ShopOrder cart;
             try {
                 UserEntity user = userService.findByUsername(request.getUsername());
                 cart = getOrCreateCart(user);
-                cart = shopOrderRepository.save(cart);
-                cart = updateCart(cart, request);
-                if(cart != null) {
+
+                if(cart != null && processOrder(cart)) {
                     cart.setOrderStatus(OrderStatus.PLACED);
                     cart.setOrderDate(LocalDateTime.now());
                     cart.setUserAndAddOrder(user);
@@ -107,6 +128,37 @@ public class OrderService {
         }
     }
 
+    @Transactional
+    public boolean processOrder(ShopOrder order) {
+
+        if ( order != null ) {
+
+            for (OrderItem item : order.getOrderItems()) {
+
+                Product product = this.productRepository.findById(item.getProductID());
+                if ( product != null ) {
+
+                    Inventory inventory = product.getInventory().stream().filter(a -> a.getColor().equalsIgnoreCase(item.getColor())
+                    && a.getSize().equalsIgnoreCase(item.getSize())).findFirst().orElse(null);
+
+                    if(inventory == null ) {
+                        throw new InvalidOrderStateException("Inventory not found for product ID: " + item.getProductID());
+                    } else if (inventory.getQuantity() < item.getQuantity()) {
+                        throw new InvalidOrderStateException("Insufficient inventory for product ID: " + item.getProductID());
+                    }
+
+                    inventory.setQuantity(inventory.getQuantity() - item.getQuantity());
+                    this.inventoryRepository.save(inventory);
+
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        return false;
+    }
+
     protected ShopOrder updateCart(ShopOrder cart, SubmitOrderRequest request) {
 
         if(cart != null && request != null && !request.getItems().isEmpty()){
@@ -115,17 +167,39 @@ public class OrderService {
 
                 Product product = this.productRepository.findById(item.getId());
                 if ( product != null ) {
-                    OrderItem orderItem = OrderItem.builder()
-                            .orderID(cart.getId())
-                            .productID(item.getId())
-                            .color(item.getColor())
-                            .quantity(item.getQuantity())
-                            .size(item.getSize())
-                            .build();
 
-                    OrderItem savedOrderItem = this.orderItemRepository.save(orderItem);
+                    OrderItem savedOrderItem = null;
 
-                    cart.getOrderItems().add(savedOrderItem);
+                    OrderItem existingOrderItem = cart.getOrderItems().stream().filter(a -> a.getProductID() == item.getId()
+                            && a.getColor().equals(item.getColor())
+                            && a.getSize().equals(item.getSize())
+                    ).findFirst().orElse(null);
+
+                    if(existingOrderItem != null) {
+                        existingOrderItem.setQuantity(existingOrderItem.getQuantity() + item.getQuantity());
+                        savedOrderItem = this.orderItemRepository.save(existingOrderItem);
+
+                        /** Update item */
+                        int index = cart.getOrderItems().indexOf(existingOrderItem);
+                        if(index > -1) {
+                            cart.getOrderItems().set(index, savedOrderItem);
+                        }
+
+                    } else {
+                        OrderItem orderItem = OrderItem.builder()
+                                .orderID(cart.getId())
+                                .productID(item.getId())
+                                .color(item.getColor())
+                                .quantity(item.getQuantity())
+                                .size(item.getSize())
+                                .build();
+
+                        savedOrderItem = this.orderItemRepository.save(orderItem);
+                        /** Add item to cart */
+                        cart.getOrderItems().add(savedOrderItem);
+                    }
+
+
                 }
             }
 
@@ -203,4 +277,5 @@ public class OrderService {
         return true;
 
     }
+
 }
