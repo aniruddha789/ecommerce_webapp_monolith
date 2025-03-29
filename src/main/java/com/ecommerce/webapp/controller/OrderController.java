@@ -1,14 +1,13 @@
 package com.ecommerce.webapp.controller;
 
 import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
+import com.ecommerce.webapp.dto.response.order.CartIconResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponse;
 import com.ecommerce.webapp.entity.OrderItem;
 import com.ecommerce.webapp.entity.ShopOrder;
 import com.ecommerce.webapp.entity.UserEntity;
 import com.ecommerce.webapp.service.OrderService;
 import com.ecommerce.webapp.service.UserService;
-
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,14 @@ public class OrderController {
 
     @Autowired
     private UserService userService;
+
+
+    @GetMapping("/cartIcon/{username}")
+    public ResponseEntity<CartIconResponse> getCartIcon(@PathVariable String username) {
+        UserEntity user = userService.findByUsername(username);
+        CartIconResponse cartIconResponse = orderService.getCartIcon(user);
+        return ResponseEntity.ok(cartIconResponse);
+    }
 
     @GetMapping("/cart")
     public ResponseEntity<ShopOrder> getCart(@RequestParam String username) {

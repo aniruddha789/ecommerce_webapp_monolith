@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.ecommerce.webapp.dto.response.order.CartIconResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponseOrder;
 import com.ecommerce.webapp.dto.response.order.OrdersResponseOrderItem;
@@ -47,6 +48,17 @@ public class OrderService {
             ShopOrder newCart = new ShopOrder(user, LocalDateTime.now());
             return shopOrderRepository.save(newCart);
         }
+    }
+
+    public CartIconResponse getCartIcon(UserEntity user) {
+        ShopOrder cart = getOrCreateCart(user);
+        int quantity = 0;
+        if(cart != null && cart.getOrderItems() != null) {
+            quantity = cart.getOrderItems().size();
+        }
+        return CartIconResponse.builder()
+                .quantity(String.valueOf(quantity))
+                .build();
     }
 
     public void addItemToCart(UserEntity user, OrderItem item) {
