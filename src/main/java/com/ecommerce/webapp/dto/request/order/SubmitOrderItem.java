@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class SubmitOrderItem {
 
-    private int id; /** Order Item ID*/
+    private int id; /** product ID*/
     private int quantity;
     private String size;
     private String color;

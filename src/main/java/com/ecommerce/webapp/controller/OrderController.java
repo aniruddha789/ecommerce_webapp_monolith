@@ -1,14 +1,14 @@
 package com.ecommerce.webapp.controller;
 
+import com.ecommerce.webapp.dto.request.order.SubmitOrderItem;
 import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
+import com.ecommerce.webapp.dto.response.order.CartIconResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponse;
 import com.ecommerce.webapp.entity.OrderItem;
 import com.ecommerce.webapp.entity.ShopOrder;
 import com.ecommerce.webapp.entity.UserEntity;
 import com.ecommerce.webapp.service.OrderService;
 import com.ecommerce.webapp.service.UserService;
-
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +24,14 @@ public class OrderController {
     @Autowired
     private UserService userService;
 
+
+    @GetMapping("/cartIcon/{username}")
+    public ResponseEntity<CartIconResponse> getCartIcon(@PathVariable String username) {
+        UserEntity user = userService.findByUsername(username);
+        CartIconResponse cartIconResponse = orderService.getCartIcon(user);
+        return ResponseEntity.ok(cartIconResponse);
+    }
+
     @GetMapping("/cart")
     public ResponseEntity<ShopOrder> getCart(@RequestParam String username) {
         UserEntity user = userService.findByUsername(username);
@@ -32,10 +40,9 @@ public class OrderController {
     }
 
     @PostMapping("/cart/add")
-    public ResponseEntity<ShopOrder> addItemToCart(@RequestParam String username, @RequestBody OrderItem item) {
-        UserEntity user = userService.findByUsername(username);
-        orderService.addItemToCart(user, item);
-        return ResponseEntity.ok(orderService.getOrCreateCart(user));
+    public ResponseEntity<ShopOrder> addItemToCart(@RequestBody SubmitOrderRequest request) {
+        ShopOrder order = orderService.addItemToCart(request);
+        return ResponseEntity.ok(order);
     }
 
     @PostMapping("/cart/remove")
@@ -54,7 +61,7 @@ public class OrderController {
 
     @PostMapping("/submitOrder")
     public ResponseEntity<ShopOrder> submitOrder(@RequestBody SubmitOrderRequest request) {
-        ShopOrder orderStatus = orderService.checkout(request);
+        ShopOrder orderStatus = orderService.submitOrder(request);
         return ResponseEntity.ok(orderStatus);
     }
 
