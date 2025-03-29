@@ -8,11 +8,12 @@ import com.ecommerce.webapp.dto.response.Status;
 import com.ecommerce.webapp.entity.Address;
 import com.ecommerce.webapp.entity.Role;
 import com.ecommerce.webapp.entity.UserEntity;
+import com.ecommerce.webapp.service.KeyManagementService;
 import com.ecommerce.webapp.service.UserService;
 import com.ecommerce.webapp.util.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -35,6 +37,10 @@ public class UserController {
 
     @Autowired
     JWTUtil jwtUtil;
+
+    @Autowired
+    KeyManagementService keyManagementService;
+
 
 
     @PostMapping("/register")
@@ -53,8 +59,9 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginDTO loginDTO) {
         try {
+            String decryptedPassword = keyManagementService.decryptPassword(loginDTO.getPassword());
             authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
+                new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), decryptedPassword)
             );
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus .UNAUTHORIZED)
