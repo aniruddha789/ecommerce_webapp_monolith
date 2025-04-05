@@ -1,7 +1,13 @@
 package com.ecommerce.webapp.exception;
 
+import lombok.Data;
+
+@Data
 public class InvalidOrderStateException extends RuntimeException {
-    public InvalidOrderStateException(String message) {
+    private String code;
+    public InvalidOrderStateException(String code, String message) {
         super(message);
+        this.code = code;
+
     }
 }

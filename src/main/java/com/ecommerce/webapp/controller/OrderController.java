@@ -1,10 +1,9 @@
 package com.ecommerce.webapp.controller;
 
-import com.ecommerce.webapp.dto.request.order.SubmitOrderItem;
+import com.ecommerce.webapp.dto.request.order.DeleteItemsRequest;
 import com.ecommerce.webapp.dto.request.order.SubmitOrderRequest;
 import com.ecommerce.webapp.dto.response.order.CartIconResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponse;
-import com.ecommerce.webapp.entity.OrderItem;
 import com.ecommerce.webapp.entity.ShopOrder;
 import com.ecommerce.webapp.entity.UserEntity;
 import com.ecommerce.webapp.service.OrderService;
@@ -45,17 +44,35 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
-    @PostMapping("/cart/remove")
-    public ResponseEntity<ShopOrder> removeItemFromCart(@RequestParam String username, @RequestParam int itemId) {
+    /** Remove single item by Item ID*/
+    @PostMapping("/cart/removeX")
+    public ResponseEntity<ShopOrder> removeItemXFromCart(@RequestParam String username, @RequestParam int itemId) {
         UserEntity user = userService.findByUsername(username);
-        orderService.removeItemFromCart(user, itemId);
+        orderService.removeItemXFromCart(user, itemId);
         return ResponseEntity.ok(orderService.getOrCreateCart(user));
     }
 
-    @PostMapping("/cart/update")
+    /** Remove multiple items from cart */
+    @PostMapping("/cart/remove")
+    public ResponseEntity<ShopOrder> removeItemFromCart(@RequestParam String username, @RequestBody DeleteItemsRequest request) {
+        UserEntity user = userService.findByUsername(username);
+        orderService.removeItemsFromCart(user, request);
+        return ResponseEntity.ok(orderService.getOrCreateCart(user));
+    }
+
+
+
+    @PostMapping("/cart/updateQuantity")
     public ResponseEntity<ShopOrder> updateItemQuantity(@RequestParam String username, @RequestParam int itemId, @RequestParam int newQuantity) {
         UserEntity user = userService.findByUsername(username);
         orderService.updateItemQuantity(user, itemId, newQuantity);
+        return ResponseEntity.ok(orderService.getOrCreateCart(user));
+    }
+
+    @PostMapping("/cart/updateSize")
+    public ResponseEntity<ShopOrder> updateSize(@RequestParam String username, @RequestParam int itemId, @RequestParam String size) {
+        UserEntity user = userService.findByUsername(username);
+        orderService.updateItemSize(user, itemId, size);
         return ResponseEntity.ok(orderService.getOrCreateCart(user));
     }
 

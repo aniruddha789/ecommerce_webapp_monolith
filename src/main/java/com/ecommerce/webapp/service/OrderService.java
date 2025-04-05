@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.ecommerce.webapp.dto.request.order.DeleteItemsRequest;
 import com.ecommerce.webapp.dto.response.order.CartIconResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponse;
 import com.ecommerce.webapp.dto.response.order.OrderResponseOrder;
 import com.ecommerce.webapp.dto.response.order.OrdersResponseOrderItem;
 import com.ecommerce.webapp.entity.*;
 import com.ecommerce.webapp.repository.InventoryRepository;
+import com.ecommerce.webapp.util.ShopConstants;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,7 @@ public class OrderService {
             return existingCart.get();
         } else {
             ShopOrder newCart = new ShopOrder(user, LocalDateTime.now());
+            newCart.setOrderStatus(OrderStatus.CART);
             return shopOrderRepository.save(newCart);
         }
     }
@@ -72,37 +75,109 @@ public class OrderService {
                 cart = shopOrderRepository.save(cart);
                 cart = updateCart(cart, request);
                 if(cart != null) {
-                    /** Only this line is different from submitOrder function */
-                    cart.setOrderStatus(OrderStatus.CART);
                     cart.setOrderDate(LocalDateTime.now());
                     cart.setUserAndAddOrder(user);
                     return shopOrderRepository.save(cart);
                 }
             } catch (Exception e){
-                throw new InvalidOrderStateException(e.getMessage());
+                throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INTERNAL_SERVER_ERROR, e.getMessage());
             }
 
             return ShopOrder.builder().orderStatus(OrderStatus.CANCELLED).build();
 
         } else {
-            throw new InvalidOrderStateException("Invalid order request");
+            throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INTERNAL_SERVER_ERROR, "Invalid order request");
         }
     }
 
-    public void removeItemFromCart(UserEntity user, int itemId) {
+    public void removeItemXFromCart(UserEntity user, int itemId) {
         ShopOrder cart = getOrCreateCart(user);
         cart.getOrderItems().removeIf(item -> item.getId() == itemId);
         shopOrderRepository.save(cart);
     }
 
+    public void removeItemsFromCart(UserEntity user, DeleteItemsRequest request) {
+        if(request != null && request.getItemIds() != null) {
+            ShopOrder cart = getOrCreateCart(user);
+
+            for(Integer itemId : request.getItemIds()) {
+                cart.getOrderItems().removeIf(item -> item.getId() == itemId);
+            }
+            shopOrderRepository.save(cart);
+
+        }
+     }
+
+
     public void updateItemQuantity(UserEntity user, int itemId, int newQuantity) {
         ShopOrder cart = getOrCreateCart(user);
-        cart.getOrderItems().stream()
-            .filter(item -> item.getId() == itemId)
-            .findFirst()
-            .ifPresent(item -> item.setQuantity(newQuantity));
+
+        Integer productId = cart.getOrderItems().stream()
+                .filter(item -> item.getId() == itemId)
+                .findFirst()
+                .map(OrderItem::getProductID) // Map to the productId if present
+                .orElse(null); // Return null if Optional is empty
+
+        if (productId != null ) {
+            Product p = productRepository.findById(itemId);
+            Optional<OrderItem> orderItem = cart.getOrderItems().stream()
+                    .filter(item -> item.getId() == itemId)
+                    .findFirst();
+
+            if (p.getInventory() != null && orderItem.isPresent()) {
+                int availableInventory = p.getInventory().stream().filter(inv ->
+                    inv.getSize().equals(orderItem.get().getSize()) &&
+                    inv.getColor().equals(orderItem.get().getColor())
+                ).findFirst().map(Inventory::getQuantity).orElse(0);
+
+                if (availableInventory >= newQuantity) {
+                    orderItem.get().setQuantity(newQuantity);
+                } else {
+                    throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INSUFFICIENT_INVENTORY, "Insufficient inventory");
+                }
+            }
+         }
+
         shopOrderRepository.save(cart);
     }
+
+    public void updateItemSize(UserEntity user, int itemId, String newSize){
+
+        ShopOrder cart = getOrCreateCart(user);
+
+        Integer productId = cart.getOrderItems().stream()
+                .filter(item -> item.getId() == itemId)
+                .findFirst()
+                .map(OrderItem::getProductID) // Map to the productId if present
+                .orElse(null); // Return null if Optional is empty
+
+        if (productId != null ) {
+            Optional<Product> p = productRepository.findById(productId);
+
+            Optional<OrderItem> orderItem = cart.getOrderItems().stream()
+                    .filter(item -> item.getId() == itemId)
+                    .findFirst();
+
+            if (p != null && p.isPresent() && p.get().getInventory() != null && orderItem.isPresent()) {
+                int availableInventory = p.get().getInventory().stream().filter(inv ->
+                        inv.getSize().equals(newSize) &&
+                                inv.getColor().equals(orderItem.get().getColor())
+                ).findFirst().map(Inventory::getQuantity).orElse(0);
+
+                if (availableInventory > 0 && availableInventory > orderItem.get().quantity) {
+                    orderItem.get().setSize(newSize);
+                } else {
+                    throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INSUFFICIENT_INVENTORY, "Insufficient inventory");
+                }
+            } else {
+                throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INTERNAL_SERVER_ERROR, "No Product found");
+            }
+        }
+
+        shopOrderRepository.save(cart);
+
+    }
+
 
     public ShopOrder submitOrder(SubmitOrderRequest request) {
         if(sanitizeOrderRequest(request)) {
@@ -118,13 +193,13 @@ public class OrderService {
                     return shopOrderRepository.save(cart);
                 }
             } catch (Exception e){
-                throw new InvalidOrderStateException(e.getMessage());
+                throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INTERNAL_SERVER_ERROR, e.getMessage());
             }
 
             return ShopOrder.builder().orderStatus(OrderStatus.CANCELLED).build();
 
         } else {
-            throw new InvalidOrderStateException("Invalid order request");
+            throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INTERNAL_SERVER_ERROR, "Invalid order request");
         }
     }
 
@@ -142,9 +217,9 @@ public class OrderService {
                     && a.getSize().equalsIgnoreCase(item.getSize())).findFirst().orElse(null);
 
                     if(inventory == null ) {
-                        throw new InvalidOrderStateException("Inventory not found for product ID: " + item.getProductID());
+                        throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INSUFFICIENT_INVENTORY, "Inventory not found for product ID: " + item.getProductID());
                     } else if (inventory.getQuantity() < item.getQuantity()) {
-                        throw new InvalidOrderStateException("Insufficient inventory for product ID: " + item.getProductID());
+                        throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INSUFFICIENT_INVENTORY, "Insufficient inventory for product ID: " + item.getProductID());
                     }
 
                     inventory.setQuantity(inventory.getQuantity() - item.getQuantity());
@@ -265,13 +340,13 @@ public class OrderService {
             order.setOrderStatus(OrderStatus.CANCELLED);
             return shopOrderRepository.save(order);
         }
-        throw new InvalidOrderStateException("Cannot cancel order with status: " + order.getOrderStatus());
+        throw new InvalidOrderStateException(ShopConstants.ERR_CODE_INTERNAL_SERVER_ERROR, "Cannot cancel order with status: " + order.getOrderStatus());
     }
 
     protected boolean sanitizeOrderRequest(SubmitOrderRequest request){
 
         if(request.getUsername() == null || request.getUsername().isEmpty() || request.getItems().isEmpty()){
-            throw new InvalidOrderStateException("Invalid order request username or items should not be empty");
+            throw new InvalidOrderStateException(ShopConstants.ERR_CODE_BAD_REQUEST, "Invalid order request username or items should not be empty");
         }
 
         return true;
