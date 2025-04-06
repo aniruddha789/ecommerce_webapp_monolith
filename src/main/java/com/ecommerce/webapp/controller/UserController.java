@@ -63,6 +63,15 @@ public class UserController {
         return status;
     }
 
+    @PostMapping("/updatePassword")
+    public Status updatePassword(@RequestBody LoginDTO loginDTO) {
+        String decryptedPassword = keyManagementService.decryptPassword(loginDTO.getPassword());
+        loginDTO.setPassword(decryptedPassword);
+
+        Status status = userService.updatePassword(loginDTO);
+        return status;
+    }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginDTO loginDTO) {
         try {

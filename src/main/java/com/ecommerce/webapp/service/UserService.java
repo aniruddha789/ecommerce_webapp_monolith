@@ -82,6 +82,32 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
+    public Status updatePassword(LoginDTO loginDTO) {
+
+        UserEntity findUser = userEntityRepository.findByUsername(loginDTO.getUsername());
+
+        if(findUser == null){
+            return new StatusBuilder()
+                    .status("FAIL")
+                    .code("402")
+                    .message("User does not exist")
+                    .build();
+        }
+
+        String encryptedPass = bCryptEncoder.encode(loginDTO.getPassword());
+
+        findUser.setPassword(encryptedPass);
+
+        userEntityRepository.save(findUser);
+
+        return new StatusBuilder()
+                .status("SUCCESSFUL")
+                .code("200")
+                .message("Password updated successfully!")
+                .build();
+
+    }
+
     public Status register(RegisterDTO registerDTO){
 
         UserEntity findUser = findByUsername(registerDTO.getUsername());
