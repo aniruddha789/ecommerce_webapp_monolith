@@ -17,4 +17,5 @@ public class OrdersResponseOrderItem {
     private String size;
     private String color;
     private int quantity;
+    private String image;
 }

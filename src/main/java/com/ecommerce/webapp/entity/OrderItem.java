@@ -35,6 +35,9 @@ public class OrderItem {
     @Column(name = "color")
     public String color;
 
+    @Column(name = "image")
+    public String image;
+
     @ManyToOne
     @JoinColumn(name = "orderID", nullable = false, updatable = false, insertable = false)
     private ShopOrder order;

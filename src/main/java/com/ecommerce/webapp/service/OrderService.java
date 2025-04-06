@@ -261,12 +261,16 @@ public class OrderService {
                         }
 
                     } else {
+
+                        String skuImage = product.getInventory().stream().filter(a -> a.getColor().equalsIgnoreCase(item.getColor())).findFirst().map(Inventory::getImage).orElse(null);
+
                         OrderItem orderItem = OrderItem.builder()
                                 .orderID(cart.getId())
                                 .productID(item.getId())
                                 .color(item.getColor())
                                 .quantity(item.getQuantity())
                                 .size(item.getSize())
+                                .image(skuImage)
                                 .build();
 
                         savedOrderItem = this.orderItemRepository.save(orderItem);
@@ -314,6 +318,7 @@ public class OrderService {
                                 .color(orderItem.getColor())
                                 .quantity(orderItem.getQuantity())
                                 .size(orderItem.getSize())
+                                .image(orderItem.getImage())
                                 .build());
                     }
                 }
