@@ -1,6 +1,7 @@
 package com.ecommerce.webapp.controller;
 
 
+import com.ecommerce.webapp.dto.request.GoogleAuthRequest;
 import com.ecommerce.webapp.dto.request.LoginDTO;
 import com.ecommerce.webapp.dto.request.RegisterDTO;
 import com.ecommerce.webapp.dto.response.LoginResponse;
@@ -8,9 +9,11 @@ import com.ecommerce.webapp.dto.response.Status;
 import com.ecommerce.webapp.entity.Address;
 import com.ecommerce.webapp.entity.Role;
 import com.ecommerce.webapp.entity.UserEntity;
+import com.ecommerce.webapp.repository.UserEntityRepository;
 import com.ecommerce.webapp.service.KeyManagementService;
 import com.ecommerce.webapp.service.UserService;
 import com.ecommerce.webapp.util.JWTUtil;
+import com.ecommerce.webapp.util.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -40,6 +44,9 @@ public class UserController {
 
     @Autowired
     KeyManagementService keyManagementService;
+
+    @Autowired
+    UserEntityRepository userRepository;
 
 
 
@@ -75,6 +82,86 @@ public class UserController {
         return ResponseEntity.ok(new LoginResponse(token, "SUCCESS", "Token generated successfully", 
         username, firstname));
     }
+
+    @PostMapping("/google-login")
+    public ResponseEntity<LoginResponse> googleLogin(@RequestBody GoogleAuthRequest googleAuthRequest) {
+        try {
+            // 1. Validate Firebase token (optional but recommended)
+            // If you want to verify the token with Firebase, you can add Firebase Admin SDK
+
+            // 2. Check if user exists by firebaseUid
+            Optional<UserEntity> existingUser = userRepository.findByFirebaseUid(googleAuthRequest.getFirebaseUid());
+            UserEntity user;
+
+            if (existingUser.isPresent()) {
+                // User exists - use existing user
+                user = existingUser.get();
+            } else {
+                // User doesn't exist - create new user
+
+                String firebaseUid = googleAuthRequest.getFirebaseUid();
+                String email = googleAuthRequest.getEmail();
+
+                // Generate a unique username (could be from email or display name)
+                String baseUsername = googleAuthRequest.getEmail().split("@")[0];
+                String username = generateUniqueUsername(baseUsername);
+
+                // Set names from display name
+                String[] nameParts = googleAuthRequest.getDisplayName().split(" ", 2);
+                String firstName = nameParts[0];
+                String lastName = nameParts.length > 1 ? nameParts[1] : "";
+
+                RegisterDTO registerDTO = RegisterDTO.builder()
+                        .username(username)
+                        .firstname(firstName)
+                        .lastname(lastName)
+                        .firebaseUid(firebaseUid)
+                        .email(email)
+                        .password(PasswordGenerator.generateRandomPassword(10))
+                        .build();
+
+                Status status = userService.register(registerDTO);
+                if (!status.getStatus().equals("SUCCESS")) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(new LoginResponse(null, "FAIL", "Google authentication failed: " + status.getMessage(), null, null));
+                }
+
+                user = userRepository.findByUsername(username);
+            }
+
+            if(user != null) {
+                // 3. Generate JWT token (same as password login)
+                final String token = jwtUtil.generateToken(user.getUsername()).trim();
+
+                // 4. Return the same response structure as password login
+                return ResponseEntity.ok(
+                        new LoginResponse(token, "SUCCESS", "Google authentication successful",
+                                user.getUsername(), user.getFirstname()));
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new LoginResponse(null, "FAIL", "Google authentication failed: User not found", null, null));
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new LoginResponse(null, "FAIL", "Google authentication failed: " + e.getMessage(), null, null));
+        }
+    }
+
+    /** Helper method to generate unique username */
+    private String generateUniqueUsername(String baseUsername) {
+        String username = baseUsername;
+        int counter = 1;
+
+        while (userRepository.existsByUsername(username)) {
+            username = baseUsername + counter++;
+        }
+
+        return username;
+    }
+
+
+
 
 
     @GetMapping("/getUser")

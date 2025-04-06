@@ -49,6 +49,9 @@ public class UserEntity {
     @Column(name = "phone")
     private String phone;
 
+    @Column(name = "firebase_uid")
+    private String firebaseUid;
+
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "userid", referencedColumnName = "id"),

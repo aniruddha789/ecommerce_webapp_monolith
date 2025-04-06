@@ -109,6 +109,9 @@ public class UserService implements UserDetailsService {
                 registerDTO.getEmail(),
                 registerDTO.getPhone());
 
+        /** Set firebase UID to link with firebase user */
+        userEntity.setFirebaseUid(registerDTO.getFirebaseUid());
+
         //set the roles
         userEntity.setRoles(registerDTO.getRoles());
 

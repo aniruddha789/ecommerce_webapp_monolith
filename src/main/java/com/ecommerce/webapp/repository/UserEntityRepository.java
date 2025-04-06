@@ -5,6 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Repository
 public interface UserEntityRepository extends CrudRepository<UserEntity, Integer> {
@@ -12,6 +13,10 @@ public interface UserEntityRepository extends CrudRepository<UserEntity, Integer
     UserEntity findByEmail(String email);
 
     UserEntity findByUsername(String username);
+
+    Boolean existsByUsername(String username);
+
+    Optional<UserEntity> findByFirebaseUid(String firebaseUid);
 
     void deleteByUsername(String username);
 
