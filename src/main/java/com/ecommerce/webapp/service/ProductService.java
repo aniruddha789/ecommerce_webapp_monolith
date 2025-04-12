@@ -1,11 +1,15 @@
 package com.ecommerce.webapp.service;
 
 
+import ch.qos.logback.core.util.StringUtil;
 import com.ecommerce.webapp.dto.response.Status;
 import com.ecommerce.webapp.entity.Inventory;
 import com.ecommerce.webapp.entity.Product;
+import com.ecommerce.webapp.repository.InventoryRepository;
 import com.ecommerce.webapp.repository.ProductRepository;
 import com.ecommerce.webapp.util.StatusBuilder;
+import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,12 +20,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductService {
 
     @Autowired
     ProductRepository productRepository;
+
+    @Autowired
+    InventoryRepository inventoryRepository;
 
 
     public Status addProduct(Product newProduct){
@@ -57,6 +65,63 @@ public class ProductService {
                 .message("Product Created Successfully!")
                 .build();
     }
+
+
+    @Transactional
+    public Status updateProduct(Integer id, Product product){
+        Optional<Product> productOptional = productRepository.findById(id);
+
+        if(productOptional.isPresent() && product != null) {
+            Product p = productOptional.get();
+
+            p.setBrandid(product.getBrandid());
+            p.setName(product.getName());
+            p.setDescription(product.getDescription());
+            p.setListprice(product.getListprice());
+            p.setType(product.getType());
+
+            if(!StringUtils.isBlank(product.getImage())) {
+                p.setImage(product.getImage());
+            }
+
+            p = productRepository.save(p);
+
+            for(Inventory inv : product.getInventory()) {
+
+                Optional<Inventory> pInv = p.getInventory().stream().filter(a -> a.getColor().equals(inv.getColor()) && a.getSize().equals(inv.getSize())).findFirst();
+                if(pInv.isPresent()) {
+                    /** Set image and quantity */
+                    pInv.get().setQuantity(inv.getQuantity());
+                    if(!StringUtils.isBlank(inv.getImage())) {
+                        pInv.get().setImage(inv.getImage());
+                    }
+//                    inventoryRepository.save(pInv.get());
+                } else {
+                    /** Add inventory if not present */
+                    inv.setProduct(p);
+                    p.getInventory().add(inv);
+//                    inventoryRepository.save(inv);
+                }
+
+            }
+
+            productRepository.save(p);
+        } else {
+            return new StatusBuilder()
+                    .status("FAIL")
+                    .code("400")
+                    .message("Product with given id " + id + " does not exist!")
+                    .build();
+        }
+
+        return new StatusBuilder()
+                .status("PASS")
+                .code("200")
+                .message("Product Updated Successfully!")
+                .build();
+    }
+
+
 
     public ArrayList<Status> addMultipleProducts(ArrayList<Product> productList){
 

@@ -31,6 +31,13 @@ public class ProductController {
         return resp;
     }
 
+    @PostMapping("/updateProduct/{id}")
+    public Status updateProduct(@PathVariable Integer id, RequestEntity<Product> productRequestEntity){
+
+        Status resp = this.productService.updateProduct(id, productRequestEntity.getBody());
+        return resp;
+    }
+
     @PostMapping("/addMultipleProducts")
     public ArrayList<Status> addMultipleProducts(@RequestBody ArrayList<Product> products){
         return this.productService.addMultipleProducts(products);
