@@ -14,6 +14,7 @@ import com.ecommerce.webapp.service.KeyManagementService;
 import com.ecommerce.webapp.service.UserService;
 import com.ecommerce.webapp.util.JWTUtil;
 import com.ecommerce.webapp.util.PasswordGenerator;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -84,10 +85,21 @@ public class UserController {
                 .body(new LoginResponse(null, "FAIL", "Invalid username or password", null, null));
         }
 
+
         final UserDetails userDetails = userService.loadUserByUsername(loginDTO.getUsername());
-        final String token = jwtUtil.generateToken(userDetails.getUsername()).trim(); // Ensure no whitespace
         String username = userDetails.getUsername();
-        String firstname = userService.findByUsername(username).getFirstname();
+        UserEntity userEntity = userService.findByUsername(username);
+        String firstname = userEntity.getFirstname();
+
+        /** Handle admin login */
+        if(BooleanUtils.isTrue(loginDTO.getAdminLogin())) {
+            if (userEntity.getRoles().stream().filter(a -> a.getName().equalsIgnoreCase("ADMIN")).count() == 0) {
+                return ResponseEntity.badRequest().body(new LoginResponse(null, "FAIL", "Admin login failed", null, null));
+            }
+        }
+
+        final String token = jwtUtil.generateToken(userDetails.getUsername()).trim(); // Ensure no whitespace
+
         return ResponseEntity.ok(new LoginResponse(token, "SUCCESS", "Token generated successfully", 
         username, firstname));
     }
