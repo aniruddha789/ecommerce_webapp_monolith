@@ -25,6 +25,7 @@ public class AppConfig {
                                 "http://localhost:5173",
                                 "http://localhost:3000",
                                 "https://myurbankicks.in",
+                                "https://urban-kicks-admin.netlify.app",
                                 "27.6.157.84",
                                 "52.74.166.77",
                                 "18.139.194.139")
